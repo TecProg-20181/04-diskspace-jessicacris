@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from contracts import contract
 
 import argparse
 import os
@@ -36,10 +37,11 @@ args = parser.parse_args()
 
 # ==== Disk Space ====
 
+@contract(command='str', returns='str')
 def subprocess_check_output(command):
     return subprocess.check_output(command.strip().split(' '))
 
-
+@contract(blocks='int,>=0', returns='str')
 def bytes_to_readable(blocks):
     byts = blocks * 512
     readable_bytes = byts
@@ -51,6 +53,12 @@ def bytes_to_readable(blocks):
     labels = ['B', 'Kb', 'Mb', 'Gb', 'Tb']
     return '{:.2f}{}'.format(round(byts/(1024.0**count), 2), labels[count])
 
+@contract(file_tree='dict(str: dict(str: str|list(str)|int))',
+            file_tree_node='dict(str: str|list(str)|int)',
+                path='str',
+                    largest_size='int,>=0',
+                        total_size='int,>=0',
+                            depth='int,>=0')
 
 def print_tree(file_tree, file_tree_node, path, largest_size, total_size,
                depth=0):
@@ -71,7 +79,7 @@ def print_tree(file_tree, file_tree_node, path, largest_size, total_size,
             print_tree(file_tree, file_tree[child], child, largest_size,
                        total_size, depth + 1)
 
-
+@contract(directory='str', depth='int', order='bool', returns='None')
 def show_space_list(directory='.', depth=-1, order=True):
     abs_directory = os.path.abspath(directory)
 
@@ -138,7 +146,7 @@ def show_space_list(directory='.', depth=-1, order=True):
     print_tree(file_tree, file_tree[abs_directory], abs_directory,
                largest_size, total_size)
 
-
+@contract(returns='None')
 def main():
     if not args.all:
         show_space_list(args.directory, args.depth,
